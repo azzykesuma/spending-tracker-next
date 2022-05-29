@@ -26,8 +26,11 @@ const login = () => {
                 router.push('/')
                 sessionStorage.setItem('Token', res.user.accessToken )
             })
+            .catch(err => {
+                setError('Login failed, check your email and password')
+            })
         } else {
-            setError('Login failed, please check your email and password')
+            setError('Login failed, please fill all the fields')
         }
     }
     return (
@@ -47,7 +50,7 @@ const login = () => {
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
-                width : '300px'
+                width : '350px'
             }}>
                 <Box
                 component='form'
@@ -57,7 +60,12 @@ const login = () => {
                     alignItems : 'center'
                 }}
                 >
-                    <Typography sx={{textAlign : 'center', fontFamily : 'Quicksand', fontWeight : '700'}} variant='h4'>Log in</Typography>
+                    <Typography sx={{
+                        textAlign : 'center',
+                        fontFamily : 'Quicksand',
+                        fontWeight : '700',
+                        marginBottom : '10px'
+                        }} variant='h4'>Log in</Typography>
                     {error && <Alert severity='error'>{error}</Alert>}
                     <TextField
                     variant='outlined'

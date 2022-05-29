@@ -1,24 +1,31 @@
 import Head from 'next/head'
-import Image from 'next/image'
 import styles from '../styles/Home.module.css'
 import { app, db } from '../firebase'
 import {
   Container,
   Typography
 } from '@mui/material';
-import { useEffect } from 'react';
+import { useEffect,useState } from 'react';
 import { useRouter } from 'next/router';
+import { getAuth,onAuthStateChanged } from 'firebase/auth';
+import Appbar from '../component/AppBar';
 
 export default function Home() {
+  const [userAcc,setUserAcc] = useState(null)
   const router = useRouter();
+  const auth = getAuth();
+  
   useEffect(() => {
-    // checking if the browser has acess token
-    let token = sessionStorage.getItem('Token');
-
-    if(!token) {
-      router.push('/login');
-    }
+    onAuthStateChanged(auth, (user) => {
+      console.log(user);
+      if(!user) {
+        router.push('/login');
+      }
+      setUserAcc(user);
+    })
   })
+
+
   return (
     <div className={styles.container}>
       <Head>
@@ -27,7 +34,8 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Container>
-        <Typography>Home</Typography>
+        <Appbar userAcc={userAcc} />
+        <Typography>home</Typography>
       </Container>
       
     </div>

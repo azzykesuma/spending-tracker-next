@@ -24,6 +24,7 @@ import Link from 'next/link';
 
 const Signup = () => {
     const auth = getAuth();
+    const [name,setName] = useState('')
     const [email,setEmail] = useState('');
     const [password,setPassword] = useState('');
     const [error,setError] = useState('');
@@ -33,10 +34,11 @@ const Signup = () => {
 
     // signup with email
     const signupWithEmail = async () => {
-        if(email && password) {
+        if(name && email && password) {
             createUserWithEmailAndPassword(auth,email,password)
                 .then((res) => {
                     sessionStorage.setItem('Token', res.user.accessToken )
+                    displayName : name
                     router.push('/')
                 })
         } else {
@@ -93,6 +95,17 @@ const Signup = () => {
                 >
                     <Typography sx={{textAlign : 'center', fontFamily : 'Quicksand', fontWeight : '700'}} variant='h4'>Sign Up</Typography>
                     {error && <Alert severity='error'>{error}</Alert>}
+
+                    <TextField
+                    variant='outlined'
+                    label='Display Name'
+                    placeholder='Enter your name here...'
+                    fullWidth
+                    margin='normal'
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    />
+
                     <TextField
                     variant='outlined'
                     label='Email'
