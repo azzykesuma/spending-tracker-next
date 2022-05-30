@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
+import { useRouter } from 'next/router';
+import Link from 'next/link';
 import {
     Typography,
     AppBar,
@@ -7,16 +9,19 @@ import {
     Menu,
     MenuItem,
     Box,
-    FormGroup,
-    FormControlLabel,
-    Switch,
 } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
+import { app,db } from '../firebase';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 
 const Appbar = ({userAcc}) => {
     const [auth, setAuth] = useState(true);
     const [anchorEl, setAnchorEl] = useState(null);
+    const [account,setAccount] = useState(null)
+    const [name,setName] = useState('Guest')
+    const router = useRouter();
+    const authHandler = getAuth();
+    console.log(account);
 
     const handleChange = (event) => {
         setAuth(event.target.checked);
@@ -30,22 +35,33 @@ const Appbar = ({userAcc}) => {
         setAnchorEl(null);
     };
 
+    const handleLogout = () => {
+        signOut(authHandler)
+          .then(() => {
+            sessionStorage.removeItem('Token');
+            router.push('/login');
+          })
+          .catch(err => {
+            console.log(err.message);
+          })
+    }
+
+    useEffect(() => {
+      onAuthStateChanged(authHandler, user => {
+        setAccount(user);
+        setName(user.displayName)
+      })
+    })
+
+
+
 
     return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
         <Toolbar>
-          <IconButton
-            size="large"
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Welcome ! {userAcc && userAcc.displayName}
+            Welcome {name} !
           </Typography>
           {auth && (
             <div>
@@ -74,8 +90,8 @@ const Appbar = ({userAcc}) => {
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
               >
-                <MenuItem onClick={handleClose}>Profile</MenuItem>
-                <MenuItem onClick={handleClose}>My account</MenuItem>
+                <MenuItem><Link href='/profile'><a>Profile</a></Link></MenuItem>
+                <MenuItem onClick={handleLogout}>Log out</MenuItem>
               </Menu>
             </div>
           )}
