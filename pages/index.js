@@ -3,12 +3,18 @@ import { app, db } from '../firebase'
 import {
   Container,
   Typography,
-  Paper
+  Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button
 } from '@mui/material';
 import { useEffect,useState } from 'react';
 import { useRouter } from 'next/router';
 import { getAuth,onAuthStateChanged } from 'firebase/auth';
-import { collection, getDocs } from "firebase/firestore"; 
+import { collection, getDocs, addDoc,deleteDoc,doc } from "firebase/firestore"; 
 import FooterBar from '../component/FooterBar';
 import DataList from '../component/DataList';
 
@@ -16,36 +22,93 @@ export default function Home() {
   const [userAcc,setUserAcc] = useState(null)
   const router = useRouter();
   const auth = getAuth();
-  const [dataCol,setDataCol] = useState(null)
+  const [dataCol,setDataCol] = useState([])
   const colref = collection(db,'spending');
-  
-  
+  const [id,setId] = useState('')
+  const [open,setOpen] = useState(false)
+  const [desc,setDesc] = useState('')
+  const [amount,setAmount] = useState('')
 
+  // dialog functions
+  const handleClickOpen = () => {
+    setOpen(true);
+  }
+
+  const handleClickClose = () => {
+    setOpen(false);
+  }
+
+  // converting number to rupiah currency
+  const toRupiah = (angka) => {
+    var rupiah = '';
+    var angkarev = angka.toString().split('').reverse().join('');
+    for (var i = 0; i < angkarev.length; i++) if (i % 3 == 0) rupiah += angkarev.substr(i, 3) + '.';
+    return 'Rp. ' + rupiah.split('', rupiah.length - 1).reverse().join('');
+  }
+  
   // retrieving data from firestore
   const getData = async() => {
     getDocs(colref)
     .then(res => {
       setDataCol(res.docs.map(item => {
-        return {...item.data(), id : item.id}
+        return {...item.data(),id:item.id}
       }))
-      console.log(dataCol);
     }).catch(err => {
       console.log(err.message)
     })
   }
 
+  // adding data to firestore
+  const addData = () => {
+    addDoc(colref , {
+      desc,
+      amount : toRupiah(amount)
+    })
+    .then(() => {
+      setDesc('')
+      setAmount('')
+      getData()
+      handleClickClose()
+    })
+    .catch(err => {
+      console.log(err.message);
+    })
+  }
+
+  // deleting data
+  const deleteData = id => {
+    let data = doc(db,'spending',id);
+    deleteDoc(data)
+    .then(() => {
+      getData()
+    })
+    .catch(err => {
+      console.log(err.message);
+    })    
+  }
+
+  // updating data
+  const editData = (id,desc,amount) => {
+    setOpen(true)
+    setId(id)
+    setDesc(desc)
+    setAmount(amount)
+    console.log(id,desc,amount);
+  }
+
+
   useEffect(() => {
-    const token = sessionStorage.getItem('Token')
+    let token = sessionStorage.getItem('Token')
     onAuthStateChanged(auth, (user) => {
       if(!user) {
         router.push('/login');
       }
-      if(token) {
-        getData();
-      }
       setUserAcc(user);
     })
-    
+
+    if(token) {
+      getData();
+    }
   },[])
 
 
@@ -84,14 +147,47 @@ export default function Home() {
             <Typography variant='h6' component='h1' gutterBottom
             sx={{color : '#323031', fontFamily : 'Quicksand'}}
             >
-              Rp. 100.000
+              Rp.100.000
             </Typography>
           </Paper>
-          {/* {dataCol.map(data => (
-            <p>{data.amount}</p>
-          ))} */}
+
+          {
+            dataCol.map(data => {
+              return ( <DataList data={data} 
+              key={data.id} deleteData={deleteData}
+              editData={editData}
+              /> )
+            })
+          }
+
+          <Dialog open={open} onClose={handleClickClose}>
+            <DialogTitle>Add a new spending</DialogTitle>
+            <DialogContent>
+              <TextField
+              value={desc}
+              onChange={e => setDesc(e.target.value)}
+              label='Description'
+              placeholder='Add spending description'
+              fullWidth
+              margin='normal'
+              />
+              <TextField
+              value={amount}
+              onChange={e => setAmount(e.target.value)}
+              label='Amount'
+              placeholder='Add spending amount'
+              fullWidth
+              margin='normal'
+              type='number'
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleClickClose}>Cancel</Button>
+              <Button onClick={addData}>Add Data</Button>
+            </DialogActions>
+          </Dialog>
         </Container>
-        <FooterBar />
+        <FooterBar handleClickOpen={handleClickOpen}  />
     </>
   )
 }

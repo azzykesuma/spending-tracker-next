@@ -4,7 +4,7 @@ import {
 } from '@mui/material';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 
-const FooterBar = () => {
+const FooterBar = ({handleClickOpen}) => {
     return (
         <Box component='div'
         sx={{
@@ -21,6 +21,7 @@ const FooterBar = () => {
                 bottom : '40px',
                 backgroundColor : '#B0DB43',
             }}
+            onClick={handleClickOpen}
             ><AddCircleIcon fontSize='large' /></IconButton>
         </Box>
     );
