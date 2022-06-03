@@ -11,7 +11,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { app } from '../firebase';
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-const login = () => {
+const Login = () => {
     const [error,setError] = useState('')
     const [email,setEmail] = useState('')
     const [password,setPassword] = useState('')
@@ -99,11 +99,11 @@ const login = () => {
                 </Box>
                 <Typography variant='body2' component='p'
                 sx={{textAlign:'center'}}>
-                    Don't have an account? <Link href='/signup'><a className='link'>Sign up</a></Link>
+                    Don&apos;t have an account? <Link href='/signup'><a className='link'>Sign up</a></Link>
                 </Typography>
             </Box>
         </Container>
     );
 }
  
-export default login;
+export default Login;
