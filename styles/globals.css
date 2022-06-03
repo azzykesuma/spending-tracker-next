@@ -19,3 +19,11 @@ a {
 .link {
   color : blue;
 }
+
+.income {
+  background-color: #757de8;
+}
+
+.spending {
+  background-color: #f44336;
+}

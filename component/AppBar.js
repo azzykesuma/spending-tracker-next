@@ -21,7 +21,6 @@ const Appbar = ({userAcc}) => {
     const [name,setName] = useState('Guest')
     const router = useRouter();
     const authHandler = getAuth();
-    console.log(account);
 
     const handleChange = (event) => {
         setAuth(event.target.checked);

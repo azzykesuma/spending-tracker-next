@@ -18,7 +18,9 @@ import {
 import { useEffect,useState,useRef } from 'react';
 import { useRouter } from 'next/router';
 import { getAuth,onAuthStateChanged } from 'firebase/auth';
-import { collection, getDocs, addDoc,deleteDoc,doc, updateDoc } from "firebase/firestore"; 
+import { collection, getDocs,
+  addDoc,deleteDoc,doc, updateDoc,
+  serverTimestamp, query, orderBy } from "firebase/firestore"; 
 import FooterBar from '../component/FooterBar';
 import DataList from '../component/DataList';
 
@@ -56,7 +58,8 @@ export default function Home() {
   
   // retrieving data from firestore
   const getData = async() => {
-    getDocs(colref)
+    const q = query(colref,orderBy('timestamp','desc'))
+    getDocs(q)
     .then(res => {
       setDataCol(res.docs.map(item => {
         return {...item.data(),id:item.id}
@@ -70,14 +73,21 @@ export default function Home() {
   const addData = () => {
     addDoc(colref , {
       desc,
-      amount : toRupiah(amount)
+      inputType,
+      amount : toRupiah(amount),
+      timestamp : serverTimestamp()
     })
     .then(() => {
       setDesc('')
       setAmount('')
       getData()
       handleClickClose()
-      setWalletAmount(amount => amount + toRupiah(amount))
+
+      if(inputType === 'income'){
+        setWalletAmount(parseInt(walletAmount) + parseInt(amount))
+      }else {
+        setWalletAmount(parseInt(walletAmount) - parseInt(amount))
+      }
     })
     .catch(err => {
       console.log(err.message);
@@ -134,8 +144,12 @@ export default function Home() {
     if(token) {
       getData();
     }
-    // changing wallet amount
-    prevMoney.current = walletAmount;
+    // persisting wallet amount
+    setWalletAmount(JSON.parse(window.localStorage.getItem('walletAmount')))
+  },[])
+
+  useEffect(() => {
+    window.localStorage.setItem('walletAmount',walletAmount)
   },[walletAmount])
 
 
