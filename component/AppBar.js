@@ -40,6 +40,8 @@ const Appbar = ({userAcc}) => {
           .then(() => {
             sessionStorage.removeItem('Token');
             router.push('/login');
+            setName('Guest')
+            setAnchorEl(null)
           })
           .catch(err => {
             console.log(err.message);
@@ -49,19 +51,23 @@ const Appbar = ({userAcc}) => {
     useEffect(() => {
       onAuthStateChanged(authHandler, user => {
         setAccount(user);
-        setName(user.displayName)
       })
+      let token = sessionStorage.getItem('Token')
+
+      if(!account) {
+        setAuth(false)
+      } else {
+        setAuth(true)
+        setName(account.displayName)
+      }
     })
-
-
-
 
     return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Welcome {name} !
+            Welcome {name ? name : 'Stranger'} !
           </Typography>
           {auth && (
             <div>
@@ -90,7 +96,7 @@ const Appbar = ({userAcc}) => {
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
               >
-                <MenuItem><Link href='/profile'><a>Profile</a></Link></MenuItem>
+                <MenuItem onClick={handleClose}><Link href='/profile'><a>Profile</a></Link></MenuItem>
                 <MenuItem onClick={handleLogout}>Log out</MenuItem>
               </Menu>
             </div>

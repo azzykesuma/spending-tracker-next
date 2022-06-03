@@ -9,12 +9,16 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Button
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem  
 } from '@mui/material';
-import { useEffect,useState } from 'react';
+import { useEffect,useState,useRef } from 'react';
 import { useRouter } from 'next/router';
 import { getAuth,onAuthStateChanged } from 'firebase/auth';
-import { collection, getDocs, addDoc,deleteDoc,doc } from "firebase/firestore"; 
+import { collection, getDocs, addDoc,deleteDoc,doc, updateDoc } from "firebase/firestore"; 
 import FooterBar from '../component/FooterBar';
 import DataList from '../component/DataList';
 
@@ -28,6 +32,10 @@ export default function Home() {
   const [open,setOpen] = useState(false)
   const [desc,setDesc] = useState('')
   const [amount,setAmount] = useState('')
+  const [update,setUpdate] = useState(false)
+  const [walletAmount,setWalletAmount] = useState(0)
+  const [inputType,setInputType] = useState('income')
+  const prevMoney = useRef()
 
   // dialog functions
   const handleClickOpen = () => {
@@ -69,6 +77,7 @@ export default function Home() {
       setAmount('')
       getData()
       handleClickClose()
+      setWalletAmount(amount => amount + toRupiah(amount))
     })
     .catch(err => {
       console.log(err.message);
@@ -89,13 +98,29 @@ export default function Home() {
 
   // updating data
   const editData = (id,desc,amount) => {
+    setUpdate(true)
     setOpen(true)
     setId(id)
     setDesc(desc)
-    setAmount(amount)
-    console.log(id,desc,amount);
   }
 
+  const updateData = () => {
+    let data = doc(db,'spending',id);
+    updateDoc(data, {
+      desc, 
+      amount : toRupiah(amount)
+    })
+    .then(() => {
+      setDesc('')
+      setAmount('')
+      getData()
+      setOpen(false)
+      setUpdate(false)
+    })
+    .catch(err => {
+      console.log(err.message);
+    })
+  }
 
   useEffect(() => {
     let token = sessionStorage.getItem('Token')
@@ -109,7 +134,9 @@ export default function Home() {
     if(token) {
       getData();
     }
-  },[])
+    // changing wallet amount
+    prevMoney.current = walletAmount;
+  },[walletAmount])
 
 
   return (
@@ -147,7 +174,7 @@ export default function Home() {
             <Typography variant='h6' component='h1' gutterBottom
             sx={{color : '#323031', fontFamily : 'Quicksand'}}
             >
-              Rp.100.000
+              {toRupiah(walletAmount)}
             </Typography>
           </Paper>
 
@@ -160,9 +187,30 @@ export default function Home() {
             })
           }
 
-          <Dialog open={open} onClose={handleClickClose}>
+          <Dialog open={open} onClose={handleClickClose}
+          >
             <DialogTitle>Add a new spending</DialogTitle>
-            <DialogContent>
+            <DialogContent
+            sx={{
+              height : '250px',
+              display : 'flex',
+              flexDirection : 'column',
+              justifyContent : 'center'
+            }}
+            >
+              <FormControl>
+                <InputLabel id="input-type">Type</InputLabel>
+              <Select
+                labelId="input-type"
+                id="input-type-select"
+                value={inputType}
+                label="input type"
+                onChange={e => setInputType(e.target.value)}
+              >
+                <MenuItem value={'income'}>Income</MenuItem>
+                <MenuItem value={'spending'}>Spending</MenuItem>
+              </Select>  
+
               <TextField
               value={desc}
               onChange={e => setDesc(e.target.value)}
@@ -171,6 +219,7 @@ export default function Home() {
               fullWidth
               margin='normal'
               />
+              
               <TextField
               value={amount}
               onChange={e => setAmount(e.target.value)}
@@ -180,10 +229,11 @@ export default function Home() {
               margin='normal'
               type='number'
               />
+              </FormControl>
             </DialogContent>
             <DialogActions>
               <Button onClick={handleClickClose}>Cancel</Button>
-              <Button onClick={addData}>Add Data</Button>
+              <Button onClick={update ? updateData : addData}>{update ? 'Update' : 'Add data'}</Button>
             </DialogActions>
           </Dialog>
         </Container>

@@ -7,6 +7,7 @@ import {
     Typography,
     Button
 } from '@mui/material';
+import Link from 'next/link';
 import { getAuth,updateProfile } from "firebase/auth";
 
 const Profile = () => {
@@ -63,6 +64,9 @@ const Profile = () => {
                 variant='contained' sx={{ marginTop : '10px'}}
                 >Update</Button>
             </Box>
+            <Button href='/' variant='contained'
+            sx={{marginBlock : '10px'}}
+            >Home</Button>
         </Container>
     );
 }
